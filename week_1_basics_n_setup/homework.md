@@ -34,6 +34,7 @@ After that, run
 Apply the plan and copy the output (after running `apply`) to the form.
 
 ```console
+carlos@3520:~$ terraform apply
 var.project
   Your GCP Project ID
 
