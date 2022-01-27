@@ -139,12 +139,21 @@ wget https://s3.amazonaws.com/nyc-tlc/misc/taxi+_zone_lookup.csv
 
 Download this data and put it to Postgres
 
+DONE 😄
+
 ## Question 3. Count records 
 
 How many taxi trips were there on January 15?
 
 Consider only trips that started on January 15.
 
+** 53024 trips **
+
+```sql 
+SELECT COUNT(*)
+FROM PUBLIC.YELLOW_TAXI_TRIPS
+WHERE DATE(TPEP_PICKUP_DATETIME) = '2021-01-15'
+```
 
 ## Question 4. Largest tip for each day
 
@@ -155,6 +164,20 @@ Use the pick up time for your calculations.
 
 (note: it's not a typo, it's "tip", not "trip")
 
+** It was at 2021-01-20: 1140.44 😮 **
+
+```sql 
+WITH JANUARY AS
+	(SELECT DATE(TPEP_PICKUP_DATETIME) AS DATE,
+			MAX(TIP_AMOUNT) AS LARGEST_TIP
+		FROM PUBLIC.YELLOW_TAXI_TRIPS
+		WHERE DATE(TPEP_PICKUP_DATETIME) BETWEEN '2021-01-01' AND '2021-01-31'
+		GROUP BY 1
+		ORDER BY 2 DESC)
+SELECT *
+FROM JANUARY
+LIMIT 1;
+```
 
 ## Question 5. Most popular destination
 
@@ -165,6 +188,21 @@ Use the pick up time for your calculations.
 
 Enter the zone name (not id). If the zone name is unknown (missing), write "Unknown" 
 
+** The most popular destination from CP on January 14 was Upper East Side South **
+
+```sql 
+SELECT B."Zone" AS ZONE_UP,
+	C."Zone" AS ZONE_DEST,
+	COUNT(*) AS N_TRIPS
+FROM PUBLIC.YELLOW_TAXI_TRIPS A
+LEFT JOIN PUBLIC.ZONES B ON A."PULocationID" = B."LocationID"
+LEFT JOIN PUBLIC.ZONES C ON A."DOLocationID" = C."LocationID"
+WHERE DATE(TPEP_PICKUP_DATETIME) = '2021-01-14'
+	AND B."Zone" = 'Central Park'
+GROUP BY 1,2
+ORDER BY 3 DESC
+LIMIT 3 -- check for equal count
+```
 
 ## Question 6. Most expensive locations
 
@@ -179,6 +217,20 @@ For example:
 
 If any of the zone names are unknown (missing), write "Unknown". For example, "Unknown / Clinton East". 
 
+** Answer: 'Alphabet City / Unknown' with an average of 2292.4. **
+
+```sql 
+SELECT
+	COALESCE(B."Zone",'Unknown') || ' / ' || COALESCE(C."Zone", 'Unknown') AS pickup_dropoff_pair,
+	AVG(TOTAL_AMOUNT) AS AVERAGE_AMOUNT
+FROM PUBLIC.YELLOW_TAXI_TRIPS A
+LEFT JOIN PUBLIC.ZONES B ON A."PULocationID" = B."LocationID"
+LEFT JOIN PUBLIC.ZONES C ON A."DOLocationID" = C."LocationID"
+GROUP BY
+	B."Zone",
+	C."Zone"
+ORDER BY 2 DESC
+```
 
 ## Submitting the solutions
 
