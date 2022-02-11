@@ -1,0 +1,1 @@
+- [Google Trends](https://lazarinastoy.com/the-ultimate-guide-to-pytrends-google-trends-api-with-python/)
